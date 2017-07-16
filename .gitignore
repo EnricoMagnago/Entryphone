@@ -33,3 +33,7 @@
 
 # IDE
 .idea/
+*build/
+
+# dependencies
+zeromq*
