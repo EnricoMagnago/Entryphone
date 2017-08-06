@@ -4,14 +4,14 @@
 *    \version 1.0
 *    \date    2017
 *****************************************************************************/
-/// @file   Entrance.hpp
+/// @file   EntranceServer.hpp
 /// @brief
 /// @author Enrico Magnago
 ///         Valerio Magnago   <valerio.magnago@unitn.it>
 ///
 
-#ifndef ENTRANCE_SERVER_H_
-#define ENTRANCE_SERVER_H_
+#ifndef __ENTRYPHONE_ENTRANCE_SERVER_H__
+#define __ENTRYPHONE_ENTRANCE_SERVER_H__
 
 #include "../../../common/zmq_layer/Replier.hpp"
 #include "../interface/EntranceServerDefinitions.hpp"
@@ -48,4 +48,4 @@ private:
 
 };
 
-#endif /* ENTRANCE_SERVER_H_ */
+#endif /* __ENTRYPHONE_ENTRANCE_SERVER_H__ */

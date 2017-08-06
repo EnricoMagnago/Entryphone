@@ -2,9 +2,9 @@
 // Created by valerio on 28/07/17.
 //
 
-#include "EntranceServer.hpp"
+#include "ApartmentServer.hpp"
 
-#include "../../../common/json.hpp"
+#include "../../../common/Beans/json.hpp"
 
 //#define DEBUG
 #include "../../../common/debug.hpp"
@@ -12,7 +12,7 @@
 
 
 
-EntranceServer::EntranceServer(){
+ApartmentServer::ApartmentServer(){
     // Define the callback and register it
     callback_t tmp_call=[this](const std::string& received, void* /* */, std::string& tosend){
         this->processMessage(received, tosend);
@@ -22,7 +22,7 @@ EntranceServer::EntranceServer(){
 }
 
 
-void EntranceServer::processMessage(const std::string &received, std::string &tosend) {
+void ApartmentServer::processMessage(const std::string &received, std::string &tosend) {
     nlohmann::json j;
     nlohmann::json js_tosend;
     response_t response = response_t::TIMEOUT;
@@ -66,7 +66,7 @@ void EntranceServer::processMessage(const std::string &received, std::string &to
 }
 
 
-bool EntranceServer::Start(std::string serverAddress){
+bool ApartmentServer::Start(std::string serverAddress){
     const std::string oldAdress = Replier::getCurrentAdress();
     Replier::stop();
     if(Replier::start(serverAddress)) return true;
@@ -77,6 +77,6 @@ bool EntranceServer::Start(std::string serverAddress){
     return Replier::start(oldAdress);
 }
 
-EntranceServer::~EntranceServer() {
+ApartmentServer::~ApartmentServer() {
     Replier::stop();
 }

@@ -1,16 +1,16 @@
 /*!****************************************************************************
- *    \file    main.cpp
- *    \brief   Main program of the entrata videocitofono.
+ *    \file    EntranceServerDefinitions.hpp
+ *    \brief
  *    \version 1.0
  *    \date    2017
  *****************************************************************************/
-/// @file   main.cpp
-/// @brief  Main program of the entrata videocitofono.
-/// @author Enroco Magnago
+/// @file   EntranceServerDefinitions.hpp
+/// @brief
+/// @author Enrico Magnago
 ///         Valerio Magnago
 
-#ifndef VIDEOCITOFONO_SERVER_DEFINITIONS_HPP__
-#define VIDEOCITOFONO_SERVER_DEFINITIONS_HPP__
+#ifndef __ENTRYPHONE_ENTRY_SERVER_DEFINITIONS_HPP__
+#define __ENTRYPHONE_ENTRY_SERVER_DEFINITIONS_HPP__
 
 #include <string>
 #include <boost/lexical_cast.hpp>
@@ -51,4 +51,4 @@ public:
 };
 
 
-#endif /* REMOTELOCALIZATIONDEFINITIONS_H_ */
+#endif /* __ENTRYPHONE_ENTRY_SERVER_DEFINITIONS_HPP__ */
