@@ -61,7 +61,7 @@
 
 # load zmq layer
 include ../common/zmq.mk
-
+include ../common/cpp_readline.mk
 # log off
 L=@
 # log on
