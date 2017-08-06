@@ -11,3 +11,5 @@
 * Run ./configure, followed by make.
 * To install ZeroMQ system-wide run sudo make install.
 * On Linux, run sudo ldconfig after installing ZeroMQ.
+
+d
