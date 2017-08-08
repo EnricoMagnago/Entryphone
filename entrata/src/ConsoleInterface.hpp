@@ -2,8 +2,8 @@
 // Created by valerio on 06/08/17.
 //
 
-#ifndef CITOFONO_CONSOLEINTERFACE_H
-#define CITOFONO_CONSOLEINTERFACE_H
+#ifndef __ENTRY_CONSOLEINTERFACE_HPP__
+#define __ENTRY_CONSOLEINTERFACE_HPP__
 
 #include "../../common/cpp_readline/Console.hpp"
 #include "../../common/single_thread.hpp"
@@ -36,4 +36,4 @@ private:
 };
 
 
-#endif //CITOFONO_CONSOLEINTERFACE_H
+#endif /* __ENTRY_CONSOLEINTERFACE_HPP__ */

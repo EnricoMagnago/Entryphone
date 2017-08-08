@@ -6,10 +6,11 @@
  *****************************************************************************/
 /// @file   Algorithm.cpp
 /// @brief
-/// @author Enroco Magnago
+/// @author Enrico Magnago
 ///         Valerio Magnago
-#ifndef ALGORITHM_H_
-#define ALGORITHM_H_
+
+#ifndef __ENTRY_ALGORITHM_HPP__
+#define __ENTRY_ALGORITHM_HPP__
 
 #include <fstream>
 #include <string>
@@ -85,5 +86,4 @@ private:
 
 };
 
-// 
-#endif /* ALGORITHM_H_ */
+#endif /* __ENTRY_ALGORITHM_HPP__ */

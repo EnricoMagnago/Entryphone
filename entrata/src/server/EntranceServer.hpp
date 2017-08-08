@@ -10,8 +10,8 @@
 ///         Valerio Magnago   <valerio.magnago@unitn.it>
 ///
 
-#ifndef ENTRANCE_SERVER_H_
-#define ENTRANCE_SERVER_H_
+#ifndef __ENTRANCE_SERVER_HPP__
+#define __ENTRANCE_SERVER_HPP__
 
 #include "../../../common/zmq_layer/Replier.hpp"
 #include "../interface/EntranceServerDefinitions.hpp"
@@ -48,4 +48,4 @@ private:
 
 };
 
-#endif /* ENTRANCE_SERVER_H_ */
+#endif /* __ENTRANCE_SERVER_HPP__ */
