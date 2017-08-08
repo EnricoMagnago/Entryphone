@@ -3,7 +3,7 @@
 
 //  Include a bunch of headers that we will need in the examples
 
-#include <zmq.hpp> // https://github.com/zeromq/cppzmq
+#include "zmq.hpp" // https://github.com/zeromq/cppzmq
 
 #include <iostream>
 #include <iomanip>
@@ -31,7 +31,7 @@
 
 //  On some version of Windows, POSIX subsystem is not installed by default.
 //  So define srandom and random ourself.
-//  
+//
 #if (defined (WIN32))
 #   define srandom srand
 #   define random rand
@@ -119,7 +119,7 @@ s_dump (zmq::socket_t & socket)
 //  Set simple random printable identity on socket
 //  Caution:
 //    DO NOT call this version of s_set_id from multiple threads on MS Windows
-//    since s_set_id will call rand() on MS Windows. rand(), however, is not 
+//    since s_set_id will call rand() on MS Windows. rand(), however, is not
 //    reentrant or thread-safe. See issue #521.
 inline std::string
 s_set_id (zmq::socket_t & socket)
@@ -173,13 +173,13 @@ static inline int64_t
 s_clock (void)
 {
 #if (defined (WIN32))
-	FILETIME fileTime;
-	GetSystemTimeAsFileTime(&fileTime);
-	unsigned __int64 largeInt = fileTime.dwHighDateTime;
-	largeInt <<= 32;
-	largeInt |= fileTime.dwLowDateTime;
-	largeInt /= 10000; // FILETIME is in units of 100 nanoseconds
-	return (int64_t)largeInt;
+        FILETIME fileTime;
+        GetSystemTimeAsFileTime(&fileTime);
+        unsigned __int64 largeInt = fileTime.dwHighDateTime;
+        largeInt <<= 32;
+        largeInt |= fileTime.dwLowDateTime;
+        largeInt /= 10000; // FILETIME is in units of 100 nanoseconds
+        return (int64_t)largeInt;
 #else
     struct timeval tv;
     gettimeofday (&tv, NULL);

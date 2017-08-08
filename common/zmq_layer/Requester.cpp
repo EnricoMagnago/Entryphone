@@ -6,9 +6,9 @@
  */
 
 #include "Requester.hpp"
+#include "zhelpers.hpp"
 #include <iostream>
 #include <stdexcept>
-#include <zhelpers.hpp>
 
 using namespace std;
 
@@ -309,4 +309,3 @@ string Requester::statusToStr(status_t status) {
       throw runtime_error("Requester::statusToStr(), unknown status (" + to_string(status) + ")");
   }
 }
-
