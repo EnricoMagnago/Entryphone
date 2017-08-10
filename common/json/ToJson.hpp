@@ -27,6 +27,7 @@ namespace Json{
   public:
     void toJson(nlohmann::json& j) const{}
     void fromJson(const nlohmann::json& j){}
+  protected:
     virtual void set(const char* const key, void* const item) = 0;
     virtual const void* get(const char* const key) const = 0;
     //inline static constexpr unsigned short int getJsonKeysNumber();
@@ -57,6 +58,20 @@ namespace Json{
   template <typename ... Ts>
   constexpr void from_json(const nlohmann::json& j, ToJson<Ts...>& obj){
     obj.fromJson(j);
+  }
+
+    template <typename T, typename ...Types >
+  constexpr void ToJson<T, Types...>::toJson(nlohmann::json& j) const{
+    j[T::key] = *(static_cast<const typename T::Type *>(this->get(T::key)));
+    ToJson<Types...>::toJson(j);
+  }
+
+
+  template <typename T, typename ...Types >
+  constexpr void ToJson<T, Types...>::fromJson(const nlohmann::json& j){
+    typename T::Type alias = j.at((const char* const)T::key).get<typename T::Type>();
+    this->set(T::key, &alias);
+    ToJson<Types...>::fromJson(j);
   }
 }
 

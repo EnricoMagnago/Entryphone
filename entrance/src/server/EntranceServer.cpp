@@ -4,7 +4,7 @@
 
 #include "EntranceServer.hpp"
 
-#include "../../../common/json.hpp"
+#include "../../../common/json/ToJson.hpp"
 
 //#define DEBUG
 #include "../../../common/debug.hpp"

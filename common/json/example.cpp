@@ -1,26 +1,31 @@
-/*!
- \file ToJson.cpp
- \author Enrico Magnago
- \date 08.08.2017
- \brief base class to class serialization in JSON format
+/*
+  Small example of ToJson usage:
+  Pluto must be declared in Json namespace
+  Pluto inherits from ToJson declaring his Mappings: key -> value type
+  Pluto implements a generic get and set for the keys.
+
+  Issues:
+  1. ids must be declared globally inside the namespace,
+     in these example only the array is used inside the code
+     in these use case maybe it can be nicer to get an index instead of a string in the set and get functions (can be done)
+
+  2. at the moment the library functions to_json and from_json are not working, compile time error, thus these classes
+     can not be (de)serialized using the assignment operator.
 */
+
 
 #include <iostream>
 
 #include "ToJson.hpp"
 
-#include <type_traits>
-#include <boost/type_index.hpp>
-#include <string>
-
-
 namespace Json{
 
-  constexpr char id_pippo[] = "pippo";
-  constexpr char id_pluto[] = "pluto";
 
-  class Pluto : public ToJson<Map<id_pippo, int>, Map<id_pluto, double>>{
+  constexpr const char id_pippo[] = "pippo";
+  constexpr const char id_pluto[] = "pluto";
+  constexpr const char* const plutoKeys[] = {Pluto::id_pippo, Pluto::id_pluto};
 
+  class Pluto : public ToJson<Map<plutoKeys[0], int>, Map<plutoKeys[1], double>>{
   public:
     Pluto(){}
     Pluto(Pluto& p){
@@ -37,12 +42,13 @@ namespace Json{
     void setPippo(const int& pippo){ this->pippo = pippo; }
     void setPluto(const double& pluto){ this->pluto = pluto; }
 
+  protected:
     void set(const char* const key, void* const item){
-      if(strcmp(key, id_pippo) == 0){
+      if(strcmp(key, plutoKeys[0]) == 0){
         this->pippo = *(static_cast<int* const>(item));
         return;
       }
-      if(strcmp(key, id_pluto) == 0){
+      if(strcmp(key, plutoKeys[1]) == 0){
         this->pluto = *(static_cast<double* const>(item));
         return;
       }
@@ -52,10 +58,10 @@ namespace Json{
     }
 
     const void* get(const char* const key) const{
-      if(strcmp(key, id_pippo) == 0)
+      if(strcmp(key, plutoKeys[0]) == 0)
         return &(this->pippo);
 
-      if(strcmp(key, id_pluto) == 0)
+      if(strcmp(key, plutoKeys[1]) == 0)
         return &(this->pluto);
 
       std::cerr << "unreachable code: Pluto::set(" << key <<
@@ -74,27 +80,9 @@ int main(){
   Json::Pluto p(2, 3.14);
   nlohmann::json j;
   p.toJson(j);
-  to_json(j, p);
+  //to_json(j, p);
   std::cout << j.dump(2) << std::endl;
   Json::Pluto q;
   q.fromJson(j);
   std::cout << "q: pippo: " << q.getPippo() << "; pluto: " << q.getPluto() << std::endl;
-}
-
-namespace Json{
-
-
-  template <typename T, typename ...Types >
-  constexpr void ToJson<T, Types...>::toJson(nlohmann::json& j) const{
-    j[T::key] = *(static_cast<const typename T::Type *>(this->get(T::key)));
-    ToJson<Types...>::toJson(j);
-  }
-
-
-  template <typename T, typename ...Types >
-  constexpr void ToJson<T, Types...>::fromJson(const nlohmann::json& j){
-    typename T::Type alias = j.at((const char* const)T::key).get<typename T::Type>();
-    this->set(T::key, &alias);
-    ToJson<Types...>::fromJson(j);
-  }
 }
