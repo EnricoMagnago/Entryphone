@@ -43,7 +43,7 @@ namespace Json{
   */
   template <typename ...Types>
   class __Json__{
-  public:
+  protected:
     /*!
       \brief convert this to json: serialize.
      */
@@ -53,7 +53,6 @@ namespace Json{
       \brief convert json to this: deserialize.
      */
     constexpr void fromJson(const nlohmann::json& j){}
-  protected:
 
     /*!
       \brief virtual method: set object identified by key to item.
@@ -77,7 +76,7 @@ namespace Json{
   template < typename T, typename ...Types >
   class __Json__<T, Types...> : protected __Json__<Types ...>
   {
-  public:
+  protected:
     /*!
       \brief convert this to json: serialize.
      */
