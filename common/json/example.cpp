@@ -1,5 +1,5 @@
 /*
-  Small example of ToJson usage:
+  Small example of Json usage:
   Pluto must be declared in Json namespace
   Pluto inherits from ToJson declaring his Mappings: key -> value type
   Pluto implements a generic get and set for the keys.
@@ -8,15 +8,12 @@
   1. ids must be declared globally inside the namespace,
      in these example only the array is used inside the code
      in these use case maybe it can be nicer to get an index instead of a string in the set and get functions (can be done)
-
-  2. at the moment the library functions to_json and from_json are not working, compile time error, thus these classes
-     can not be (de)serialized using the assignment operator.
 */
 
 
 #include <iostream>
 
-#include "ToJson.hpp"
+#include "Json.hpp"
 
 namespace Json{
 
@@ -29,7 +26,7 @@ namespace Json{
   constexpr const char id_pluto[] = "pluto";
   constexpr const char* const plutoKeys[] = {id_pippo, id_pluto};
 
-  class Pluto : public ToJson<Map<plutoKeys[0], int>, Map<plutoKeys[1], double>>{
+  class Pluto : public Json<Map<plutoKeys[0], int>, Map<plutoKeys[1], double>>{
   public:
     /*
       implement default, copy and move constructors
@@ -55,6 +52,14 @@ namespace Json{
     double getPluto(){ return this->pluto; }
     void setPippo(const int& pippo){ this->pippo = pippo; }
     void setPluto(const double& pluto){ this->pluto = pluto; }
+    /*
+      we have declared manually copy and move constructor,
+      thus the compiler does not autogenerate the assignment
+      operator unless we explicity tell him to.
+     */
+    constexpr Pluto& operator=(const Pluto&) = default;
+    // move assignment
+    //constexpr Pluto& operator=(Pluto&&) = default;
 
 
   protected:
@@ -102,6 +107,9 @@ namespace Json{
       exit(1);
     }
 
+    /*
+      actual inner fields.
+     */
   private:
     int pippo;
     double pluto;
@@ -109,25 +117,22 @@ namespace Json{
 
 }
 
+/*
+  Main serializes and deserializes an instance of Pluto.
+  Trying to deserialize from an empty json leads to an unpleasant error
+  at runtime.
+*/
 int main(){
   Json::Pluto p(2, 3.14);
   nlohmann::json j;
-  p.toJson(j);
-  /* decommenting one these line causes a compile time error..
-     still trying to figure out exactly what the problem is.
-   */
-  //to_json(j, p);
+
+  // these function call is equivalent to the assignment j = p;
+  // Json::to_json(j, p);
+  j = p;
   std::cout << j.dump(2) << std::endl;
   Json::Pluto q;
-  /*
-    Trying to deserialize from an empty json leads to an unpleasant error
-    at runtime.
-   */
-  q.fromJson(j);
-  /* decommenting one these line causes a compile time error..
-     still trying to figure out exactly what the problem is.
-     Same issue as to_json.
-   */
-  //from_json(j, p);
+  // these function call is equivalent to the assignment q = j;
+  //Json::from_json(j, q);
+  q = j;
   std::cout << "q: pippo: " << q.getPippo() << "; pluto: " << q.getPluto() << std::endl;
 }
