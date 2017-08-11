@@ -6,8 +6,8 @@
 
   Issues:
   1. ids must be declared globally inside the namespace,
-     in these example only the array is used inside the code
-     in these use case maybe it can be nicer to get an index instead of a string in the set and get functions (can be done)
+  in these example only the array is used inside the code
+  in these use case maybe it can be nicer to get an index instead of a string in the set and get functions (can be done)
 */
 
 
@@ -21,7 +21,7 @@ namespace Json{
     keys used in the json serialization of Pluto,
     by splitting declaration and definition these strings could be placed inside as
     static constexpr const char [].
-   */
+  */
   constexpr const char id_pippo[] = "pippo";
   constexpr const char id_pluto[] = "pluto";
   constexpr const char* const plutoKeys[] = {id_pippo, id_pluto};
@@ -31,7 +31,7 @@ namespace Json{
     /*
       implement default, copy and move constructors
       would be nice to implement copy and move assignment too.
-     */
+    */
     Pluto(){}
     Pluto(Pluto& p){
       this->pippo = p.getPippo();
@@ -47,7 +47,7 @@ namespace Json{
     }
     /*
       usual get and set methods.
-     */
+    */
     int getPippo(){ return this->pippo; }
     double getPluto(){ return this->pluto; }
     void setPippo(const int& pippo){ this->pippo = pippo; }
@@ -56,7 +56,7 @@ namespace Json{
       we have declared manually copy and move constructor,
       thus the compiler does not autogenerate the assignment
       operator unless we explicity tell him to.
-     */
+    */
     constexpr Pluto& operator=(const Pluto&) = default;
     // move assignment
     //constexpr Pluto& operator=(Pluto&&) = default;
@@ -71,7 +71,7 @@ namespace Json{
 
       with respect to issue 2: the library could be implemented so that
       these methods takes an integer index instead of a string key.
-     */
+    */
     void set(const char* const key, void* const item){
       if(strcmp(key, plutoKeys[0]) == 0){
         this->pippo = *(static_cast<int* const>(item));
@@ -94,7 +94,7 @@ namespace Json{
 
       with respect to issue 2: the library could be implemented so that
       these methods takes an integer index instead of a string key.
-     */
+    */
     const void* get(const char* const key) const{
       if(strcmp(key, plutoKeys[0]) == 0)
         return &(this->pippo);
@@ -109,7 +109,7 @@ namespace Json{
 
     /*
       actual inner fields.
-     */
+    */
   private:
     int pippo;
     double pluto;

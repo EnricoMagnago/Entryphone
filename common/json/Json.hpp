@@ -21,16 +21,16 @@
 #include "json.hpp" // from: https://github.com/nlohmann/json
 
 namespace Json{
-
+  using Key_t = const char* const;
   /*!
     \brief class used to define single mapping: char* -> type
 
     Use these class to define json key, value type mapping
     when inheriting from Json
   */
-  template <const char* _key, typename _T>
+  template <Key_t _key, typename _T>
   struct Map{
-    static constexpr const char* key = _key;
+    static constexpr Key_t key = _key;
     typedef _T Type;
   };
 
@@ -58,12 +58,12 @@ namespace Json{
     /*!
       \brief virtual method: set object identified by key to item.
      */
-    virtual void set(const char* const key, void* const item) = 0;
+    virtual void set(Key_t key, void* const item) = 0;
 
     /*!
       \brief virtual method: return object identified by key.
      */
-    virtual const void* get(const char* const key) const = 0;
+    virtual const void* get(Key_t key) const = 0;
   };
 
 
@@ -102,7 +102,7 @@ namespace Json{
 
   template <typename T, typename ...Types >
   constexpr void __Json__<T, Types...>::fromJson(const nlohmann::json& j){
-    typename T::Type alias = j.at((const char* const)T::key).get<typename T::Type>();
+    typename T::Type alias = j.at((Key_t)T::key).get<typename T::Type>();
     this->set(T::key, &alias);
     __Json__<Types...>::fromJson(j);
   }
@@ -119,21 +119,32 @@ namespace Json{
   template <typename ...Ts >
   class Json : private __Json__<Ts...>{
   public:
+    /*!
+      \brief serialize this into j.
+     */
     constexpr void toJson(nlohmann::json& j) const{
       __Json__<Ts...>::toJson(j);
     }
+    /*!
+      \brief build this from j (deserialization).
+     */
     constexpr void fromJson(const nlohmann::json& j){
       __Json__<Ts...>::fromJson(j);
     }
   };
 
 
-  /* methods to allow (de)serialization of Json objects */
+  /*!
+    \brief extend nlohmann serialization interface to work with Json objects.
+  */
   template <typename ... Ts>
   constexpr void to_json(nlohmann::json& j, const Json<Ts...>& obj){
     obj.toJson(j);
   }
 
+  /*!
+    \brief extend nlohmann deserialization interface to work with Json objects.
+  */
   template <typename ... Ts>
   constexpr void from_json(const nlohmann::json& j, Json<Ts...>& obj){
     obj.fromJson(j);
