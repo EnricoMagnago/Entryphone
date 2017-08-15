@@ -1,5 +1,5 @@
 /*!
- \file ToJson.hpp
+ \file Json.hpp
  \author Enrico Magnago
  \date 08.08.2017
  \brief base class to class serialization in JSON format
@@ -13,6 +13,8 @@
        the method must set the corresponding field of this appropriately.
  2. virtual const void* get(const char* const key) const
        these method must return a pointer to the corresponding field of this.
+
+ See example.cpp for a working code example.
 */
 
 #ifndef __COMMON_JSON_HPP__

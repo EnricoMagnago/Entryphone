@@ -1,7 +1,13 @@
 cmake_minimum_required(VERSION 3.5)
+
+# CMake does not support c++17 yet, force compilation with c++17 std.
+add_compile_options(-std=c++17)
+
 project(Entryphone)
 
-set(CMAKE_CXX_STANDARD 14)
+
+#set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # include Boost libraries
 find_package(Boost REQUIRED)
@@ -18,13 +24,9 @@ include(FindZMQ.cmake)
 include (common/cpp_readline/FindReadline.cmake)
 
 file(GLOB common_SRC
-  "common/*.hpp"
   "common/*.cpp"
-  "common/*.h"
   "common/*.c"
-  "common/*/*.hpp"
   "common/*/*.cpp"
-  "common/*/*.h"
   "common/*/*.c")
 
 set(ENTRY_MAIN

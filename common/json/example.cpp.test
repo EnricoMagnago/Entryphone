@@ -1,7 +1,7 @@
 /*
   Small example of Json usage:
   Pluto must be declared in Json namespace
-  Pluto inherits from ToJson declaring his Mappings: key -> value type
+  Pluto inherits from Json declaring his Mappings: key -> value type
   Pluto implements a generic get and set for the keys.
 
   Issues:
@@ -73,11 +73,11 @@ namespace Json{
       these methods takes an integer index instead of a string key.
     */
     void set(const char* const key, void* const item){
-      if(strcmp(key, plutoKeys[0]) == 0){
+      if(key == plutoKeys[0]/*strcmp(key, plutoKeys[0]) == 0*/){
         this->pippo = *(static_cast<int* const>(item));
         return;
       }
-      if(strcmp(key, plutoKeys[1]) == 0){
+      if(key == plutoKeys[1]/*strcmp(key, plutoKeys[1]) == 0*/){
         this->pluto = *(static_cast<double* const>(item));
         return;
       }
