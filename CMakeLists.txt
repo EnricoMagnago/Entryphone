@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 
-# CMake does not support c++17 yet, force compilation with c++17 std.
-add_compile_options(-std=c++17)
-
 project(Entryphone)
 
+
+# CMake does not support c++17 yet, force compilation with -std=c++17
+# -g : debug
+# other flags to make compiler complain about "everything".
+set (CMAKE_CXX_FLAGS "-std=c++17 -g -Wall -Wextra -Wpedantic -Wchkp -Wformat -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wnonnull-compare -Wignored-attributes -Wmisleading-indentation -Wmissing-include-dirs -Wuninitialized -Wstrict-overflow=5 -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wbool-compare -Wduplicated-cond -Wtautological-compare -Wfloat-equal -Wshadow -Wunused-macros -Wundef -Wcast-qual -Wcast-align -Wdelete-incomplete -Wuseless-cast -Wc++-compat -Wconversion -Wlogical-op -Waggregate-return -Wmissing-field-initializers -Wredundant-decls -Winline")
 
 #set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
