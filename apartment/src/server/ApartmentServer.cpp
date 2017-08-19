@@ -1,8 +1,4 @@
-//
-// Created by valerio on 28/07/17.
-//
-
-#include "EntranceServer.hpp"
+#include "ApartmentServer.hpp"
 
 #include "../../../common/json/Json.hpp"
 
@@ -10,7 +6,7 @@
 #include "../../../common/debug.hpp"
 
 
-EntranceServer::EntranceServer(const std::string address) : Replier(address) {
+ApartmentServer::ApartmentServer(const std::string address) : Replier(address) {
 	// Define the callback and register it
 	callback_t tmp_call = [this](const std::string& received, void* /* */, std::string& tosend) {
 		this->processMessage(received, tosend);
@@ -20,7 +16,7 @@ EntranceServer::EntranceServer(const std::string address) : Replier(address) {
 }
 
 
-void EntranceServer::processMessage(const std::string& received, std::string& tosend) {
+void ApartmentServer::processMessage(const std::string& received, std::string& tosend) {
 	nlohmann::json j;
 	nlohmann::json js_tosend;
 	response_t response = response_t::TIMEOUT;
@@ -30,20 +26,18 @@ void EntranceServer::processMessage(const std::string& received, std::string& to
 
 		SDEBUG("QrServer::processMessage parsing JSON done");
 
-
 		// int id = j.at("id");   // id is not needed
 
 		cmd_t rec_cmd = cmd_bimap[j.at(cmd_field).get<std::string>()];
 
 		SDEBUG("QrServer::QrServer() cmd revieved: " << j.at(cmd_field).get<std::string>());
 		switch(rec_cmd){
-			case (cmd_t::OPEN_DOOR):{
-				std::cout << "Richiesta apertura porta" << std::endl;
+			case cmd_t::RING_BELL:{
+				std::cout << "Richiesta suono campanello" << std::endl;
 				response = response_t::OK;
 			}
 				break;
 		}
-
 	}
 	catch(const std::out_of_range& oor){
 		response = response_t::FAIL;
@@ -66,10 +60,10 @@ void EntranceServer::processMessage(const std::string& received, std::string& to
 }
 
 
-bool EntranceServer::Start() {
+bool ApartmentServer::Start(std::string serverAddress) {
 	return Replier::start();
 }
 
-EntranceServer::~EntranceServer() {
+ApartmentServer::~ApartmentServer() {
 	Replier::stop();
 }

@@ -18,9 +18,9 @@ using namespace std;
 #define ZMQ_TOUT_MSEC 1000
 #endif
 
-Replier::Replier() :
+Replier::Replier(const std::string address) :
     single_thread(thread_fun_t([this](const bool& t){this->worker(t);}), "Replier"),
-    timeout_ms(500), callback_user_data(nullptr) {
+    timeout_ms(500), address(address), callback_user_data(nullptr) {
   context = unique_ptr<zmq::context_t>(new zmq::context_t());
 }
 
@@ -28,12 +28,7 @@ Replier::~Replier() {
   stop();
 }
 
-bool Replier::start(string address) {
-  if (single_thread::isAlive()) {
-    return true;
-  }
-
-  this->address = address;
+bool Replier::start() {
   return single_thread::start();
 }
 

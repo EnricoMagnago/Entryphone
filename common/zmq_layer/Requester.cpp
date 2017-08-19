@@ -20,51 +20,13 @@ using namespace std;
 #define ZMQ_TOUT_MSEC 1000
 #endif
 
-Requester::Requester():
+Requester::Requester(const string address):
     single_thread(thread_fun_t([this](const bool& t){this->worker(t);}), "Requester"),
-    request_uid(0), address_("") {
+    request_uid(0), address_(address) {
   context = unique_ptr<zmq::context_t>(new zmq::context_t());
 }
 
-bool Requester::Test() {
-  Requester req;
-
-  req.setMaxRetries(1);
-  req.setTimeout(250);
-  req.start("tcp://localhost:8888");
-
-  string request = "prova", output = "";
-  uint16_t runs = 2;
-  status_t status;
-  while (--runs) {
-    cout << "Sending \"" << request << "\"..." << endl;
-    req.request("ciao",output,status);
-    cout << "Received \"" << output << "\" with status \"" << statusToStr(status) << "\"" << endl;
-    cout.flush();
-    cerr.flush();
-    this_thread::sleep_for(chrono::milliseconds(500));
-  }
-  req.stop();
-
-  req.start("tcp://localhost:5569");
-  req.setMaxRetries(2);
-  req.setTimeout(1000);
-  runs = 5;
-  request = "ciaociao";
-  while (--runs) {
-    cout << "Sending \"" << request << "\"..." << endl;
-    req.request("ciao",output,status);
-    cout << "Received \"" << output << "\" with status \"" << statusToStr(status) << "\"" << endl;
-    cout.flush();
-    cerr.flush();
-    this_thread::sleep_for(chrono::milliseconds(500));
-  }
-  req.stop();
-
-  return true;
-}
-
-bool Requester::start(string address) {
+bool Requester::start() {
   if (single_thread::isAlive()) {
     return true;
   }
@@ -75,7 +37,6 @@ bool Requester::start(string address) {
   uid_request_map.clear();
 
   request_uid = 0;
-  address_ = address;
 
   return single_thread::start();
 }

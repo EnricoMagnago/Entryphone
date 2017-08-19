@@ -1,11 +1,11 @@
 /*!****************************************************************************
- *    \file    main.cpp
- *    \brief   Main program of the entrance entryphone.
+ *    \file    apartment_main.cpp
+ *    \brief   Main program of the apartment entryphone.
  *    \version 1.0
  *    \date    2017
  *****************************************************************************/
 /// @file   main.cpp
-/// @brief  Main program of the entrance entryphone.
+/// @brief  Main program of the apartment entryphone.
 /// @author Enrico Magnago
 ///         Valerio Magnago
 
@@ -39,9 +39,9 @@ int main() {
 
     try {
         Algorithm::input_options_t options;
-        options.period_ms = 1000U; //1e4;
+        options.period_ms = 1000u; //1e4;
         //options.entrance_publisher     = "tcp://127.0.0.1:6666";
-        options.entrance_server        = "tcp://192.168.1.254:6670";
+        options.entrance_server        = "tcp://198.168.1.254:6670";
 
         algorithm = new Algorithm(options);
         ci = new ConsoleInterface(algorithm);

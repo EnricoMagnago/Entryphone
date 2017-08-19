@@ -9,8 +9,8 @@
 /// @author Enrico Magnago
 ///         Valerio Magnago
 
-#ifndef __ENTRY_ALGORITHM_HPP__
-#define __ENTRY_ALGORITHM_HPP__
+#ifndef __APARTMENT_ALGORITHM_HPP__
+#define __APARTMENT_ALGORITHM_HPP__
 
 #include <fstream>
 #include <string>
@@ -88,4 +88,4 @@ private:
 
 };
 
-#endif /* __ENTRY_ALGORITHM_HPP__ */
+#endif /* __APARTMENT_ALGORITHM_HPP__ */

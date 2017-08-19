@@ -17,10 +17,10 @@ class Replier : single_thread {
   public:
     typedef std::function< void (const std::string& received, void *data, std::string& tosend) > callback_t;
 
-    Replier();
+    Replier(const std::string address);
 
     using single_thread::start;
-    bool start(std::string address);
+    bool start();
     bool stop();
     const std::string getCurrentAdress() const;
     void register_callback(callback_t callback, void* user_data);

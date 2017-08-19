@@ -33,20 +33,18 @@ class Requester : single_thread {
       _req_(): rcvd(""), status(STATUS_OK) {}
     } request_t;
 
-    Requester();
+    Requester(const std::string address);
     virtual ~Requester();
 
     //void register_callback(callback_t callback, void*);
     using single_thread::start;
-    bool start(std::string address);
+    bool start();
 
     bool stop();
     bool request(const std::string& in, std::string& out, status_t& status);
     void setTimeout(uint32_t timeout_ms) {this->timeout_ms = timeout_ms;}
     void setMaxRetries(uint32_t retries) {this->retries = retries;}
     static std::string statusToStr(status_t status);
-
-    static bool Test();
 
   private:
 
@@ -67,7 +65,7 @@ class Requester : single_thread {
     uint32_t timeout_ms = 2000;
     uint32_t retries = 5;
 
-    std::string address_;
+    const std::string address_;
 
     uid_request_map_t uid_request_map;
 
