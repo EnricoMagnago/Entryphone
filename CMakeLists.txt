@@ -63,5 +63,5 @@ target_include_directories(Entryphone_entry PUBLIC ${ZMQ_INCLUDE_DIR} ${Readline
 target_include_directories(Entryphone_apartment PUBLIC ${ZMQ_INCLUDE_DIR} ${Readline_INCLUDE_DIR})
 
 ## at the 0mq library to our link directive
-target_link_libraries(Entryphone_entry PUBLIC ${ZMQ_LIBRARIES} ${Readline_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Entryphone_entry PUBLIC ${ZMQ_LIBRARIES} ${Readline_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} ${WIRINGPI_LIBRARIES})
 target_link_libraries(Entryphone_apartment PUBLIC ${ZMQ_LIBRARIES} ${Readline_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
