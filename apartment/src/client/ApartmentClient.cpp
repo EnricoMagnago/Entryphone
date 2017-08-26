@@ -11,11 +11,11 @@ bool ApartmentClient::Start() {
 	return Requester::start();
 }
 
-bool ApartmentClient::ringBell(const uint16_t apartment_id) {
+bool ApartmentClient::ringBell() {
 	nlohmann::json reply;
 	nlohmann::json request;
 	request[cmd_field] = cmd_bimap[cmd_t::RING_BELL];
-
+	std::cout << "ring_bell request: " << request.dump(2) << std::endl;
 	this->request(request, reply);
 
 	try{

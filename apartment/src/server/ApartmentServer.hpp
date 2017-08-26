@@ -32,7 +32,7 @@ public:
     ~ApartmentServer();
 
     /// start server action
-    bool Start(std::string serverAddress);
+    bool Start();
 
 
 private:

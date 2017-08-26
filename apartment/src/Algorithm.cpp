@@ -12,74 +12,96 @@
 #include "Algorithm.hpp"
 #include "../../common/TimeUtils.hpp"
 #include "server/ApartmentServer.hpp"
+#include "client/ApartmentClient.hpp"
+#include "../../entrance/src/HwMgr/HardwareManager.h"
+#include "../../entrance/src/server/EntranceServer.hpp"
 
 using namespace std;
 
-Algorithm::Algorithm(Algorithm::input_options_t options):
-        single_thread(thread_fun_t([this](const bool& t){this->worker(t);}), "Algorithm"),
-        input_options(options)
-{ }
-
+Algorithm::Algorithm(Algorithm::input_options_t options) :
+		single_thread(thread_fun_t([this](const bool& t) { this->worker(t); }), "Algorithm"),
+		input_options(options) {}
 
 
 /// @brief Destructor.
-Algorithm::~Algorithm() { }
+Algorithm::~Algorithm() {}
 
 /// @brief Set the period of the publisher.
 void Algorithm::setPublishPeriod(Cit_Types::Time_ms_t ms) {
 
-    /* The minimum period is hard-coded to 4m */
-    input_options.period_ms = ms > 4 ? ms : 4;
+	/* The minimum period is hard-coded to 4m */
+	input_options.period_ms = ms > 4 ? ms : 4;
 
 }
 
 /// @brief Get the period of the publisher.
-void Algorithm::getPublishPeriod(Cit_Types::Time_ms_t &ms) {
+void Algorithm::getPublishPeriod(Cit_Types::Time_ms_t& ms) {
 
-    /* Return the period of the publisher */
-    ms = input_options.period_ms;
+	/* Return the period of the publisher */
+	ms = input_options.period_ms;
 
 }
 
 /// @brief Executes the algorithm.
 void Algorithm::worker(const bool& terminating) {
-    std::cout<<"Algorithm::worker() started correctly"<<std::endl;
-    try {
+	std::cout << "Algorithm::worker() started correctly" << std::endl;
+	try{
+		// start entrance server
+		std::cout << "Algorithm::worker() starting entrance_server at: " << input_options.entrance_server << std::endl;
+		EntranceServer entrance_server(input_options.entrance_server);
+		/// Link the server
+		if(!entrance_server.Start()){
+			std::cerr << "Algorithm::worker() error in starting the entrance_server at : "
+			          << input_options.entrance_server << std::endl;
+			entrance_server.stop();
+			exit(1);
+		}
+		std::cout << "Algorithm::worker() entrance_server started at: " << input_options.entrance_server << std::endl;
 
-        // std::cout<<"Algorithm::worker() localization publisher: "<<input_options.localization_publisher<<std::endl;
-        // LocalizationPublisher loc_pub(input_options.localization_publisher);
+		// start apartment client
+		std::cout << "Algorithm::worker() starting apartment_client" << std::endl;
+		ApartmentClient apartment_client(input_options.apartment_server);
+		/// Link the server
+		if(!apartment_client.Start()){
+			std::cerr << "Algorithm::worker() error in starting the apartment_client at : "
+			          << input_options.apartment_server << std::endl;
+			entrance_server.stop();
+			apartment_client.stop();
+			exit(2);
+		}
+		std::cout << "Algorithm::worker() apartment_client started at: " << input_options.apartment_server << std::endl;
 
-        std::cout<<"Algorithm::worker() starting server at: "<<input_options.entrance_server<<std::endl;
-        ApartmentServer apartment_server(input_options.apartment_server);
+		// init hardware manager
+		HardwareManager hw_mgr(apartment_client.ringBell());
+		if(!hw_mgr.initHardware()){
+			std::cerr << "Algorithm::worker() error in initialization of hardware manager" << std::endl;
+			entrance_server.stop();
+			apartment_client.stop();
+			exit(3);
+		}
 
-        /// Link the server
-        if(!apartment_server.Start(input_options.entrance_server)){
-            std::cerr<<"Algorithm::worker() error in starting the server at : "<<input_options.entrance_server<<std::endl;
-        }
-        std::cout<<"Algorithm::worker() server started at: "<<input_options.entrance_server<<std::endl;
-
-
-        // Create a element of data to be streamed
-        // LocalizationPublisher::data_t streamer_data;
-        TimeUtils::PeriodicTimer_t<Cit_Types::Time_ms_t, std::milli> timer(input_options.period_ms);
-        timer.start();
+		// Create a element of data to be streamed
+		// LocalizationPublisher::data_t streamer_data;
+		TimeUtils::PeriodicTimer_t<Cit_Types::Time_ms_t, std::milli> timer(input_options.period_ms);
+		timer.start();
 //        Cit_Types::Time_ms_t time_ns;
 
-        while (!terminating) {
+		while(!terminating){
 
-            ///< Waits for the next activation
-            timer.wait_for_next_activation();
+			///< Waits for the next activation
+			timer.wait_for_next_activation();
 
-            // fill the streamer data structure with the status of the nodes
+			// fill the streamer data structure with the status of the nodes
 
-            SDEBUG("Algorithm::worker i'm still alive");
+			SDEBUG("Algorithm::worker i'm still alive");
 
-        }
+		}
 
 
-    } catch (exception& e) {
-        cout << "Algorithm::worker(), exception generated, exiting." << endl;
-        cout << "\"" << e.what() << "\"" << endl;
-        cout.flush();
-    }
+	}
+	catch(exception& e){
+		cout << "Algorithm::worker(), exception generated, exiting." << endl;
+		cout << "\"" << e.what() << "\"" << endl;
+		cout.flush();
+	}
 }

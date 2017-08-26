@@ -3,6 +3,7 @@
 #define ENTRYPHONE_HARDWAREMANAGER_H
 
 #include <functional>
+#include <atomic>
 
 class HardwareManager {
 public:
@@ -15,7 +16,10 @@ public:
 	void openDoor();
 
 private:
+	static std::atomic_flag already_handled = ATOMIC_FLAG_INIT;
 	const ringBellFun_t ringBellFun;
+
+	void call_back();
 };
 
 

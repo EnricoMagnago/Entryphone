@@ -12,7 +12,7 @@ ApartmentServer::ApartmentServer(const std::string address) : Replier(address) {
 		this->processMessage(received, tosend);
 	};
 	register_callback(tmp_call, nullptr);
-	SDEBUG("QrServer::QrServer() initialized");
+	SDEBUG("ApartmentServer::ApartmentServer() initialized");
 }
 
 
@@ -20,20 +20,19 @@ void ApartmentServer::processMessage(const std::string& received, std::string& t
 	nlohmann::json j;
 	nlohmann::json js_tosend;
 	response_t response = response_t::TIMEOUT;
-	SDEBUG("QrServer::processMessage recieved message: " << received);
+	SDEBUG("ApartmentServer::processMessage received message: " << received);
 	try{
 		j = nlohmann::json::parse(received);
 
-		SDEBUG("QrServer::processMessage parsing JSON done");
+		SDEBUG("ApartmentServer::processMessage parsing JSON done");
 
 		// int id = j.at("id");   // id is not needed
 
 		cmd_t rec_cmd = cmd_bimap[j.at(cmd_field).get<std::string>()];
 
-		SDEBUG("QrServer::QrServer() cmd revieved: " << j.at(cmd_field).get<std::string>());
 		switch(rec_cmd){
 			case cmd_t::RING_BELL:{
-				std::cout << "Richiesta suono campanello" << std::endl;
+				std::cout << "Ring bell: DRIIN" << std::endl;
 				response = response_t::OK;
 			}
 				break;
@@ -41,26 +40,26 @@ void ApartmentServer::processMessage(const std::string& received, std::string& t
 	}
 	catch(const std::out_of_range& oor){
 		response = response_t::FAIL;
-		std::cerr << " QrServer::processMessage(). Some needed fields are missing: " << oor.what() << '\n';
+		std::cerr << " ApartmentServer::processMessage(). Some needed fields are missing: " << oor.what() << '\n';
 	}
 	catch(const std::invalid_argument& oor){
 		response = response_t::FAIL;
-		std::cerr << "QrServer::processMessage invalid input argument: " << '\n';
+		std::cerr << "ApartmentServer::processMessage invalid input argument: " << '\n';
 	}
 	catch(const std::exception& e){
 		response = response_t::FAIL;
-		std::cerr << "caught exception: " << e.what() << std::endl;
+		std::cerr << "ApartmentServer: caught exception: " << e.what() << std::endl;
 	}
 
 	js_tosend[response_field] = response_bimap[response];
 	tosend = js_tosend.dump();
 
-	SDEBUG("QrServer::QrServer() response: " << js_tosend.dump());
+	SDEBUG("ApartmentServer::ApartmentServer() response: " << js_tosend.dump());
 	return;
 }
 
 
-bool ApartmentServer::Start(std::string serverAddress) {
+bool ApartmentServer::Start() {
 	return Replier::start();
 }
 

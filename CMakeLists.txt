@@ -21,7 +21,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(Threads)
 
 # find wiringPi
-include(FindWiringPi.cmake)
+# include(FindWiringPi.cmake)
 
 # find zmq.
 include(FindZMQ.cmake)

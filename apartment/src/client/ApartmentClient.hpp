@@ -38,7 +38,7 @@ public:
 	 */
 	bool Start();
 
-	bool ringBell(const uint16_t apartment_id);
+	bool ringBell();
 
 private:
 	bool request(const nlohmann::json& in, nlohmann::json& out);
