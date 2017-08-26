@@ -47,38 +47,30 @@ void Algorithm::worker(const bool& terminating) {
 	std::cout << "Algorithm::worker() started correctly" << std::endl;
 	try{
 		// start entrance server
-		std::cout << "Algorithm::worker() starting entrance_server at: " << input_options.entrance_server << std::endl;
-		EntranceServer entrance_server(input_options.entrance_server);
+		std::cout << "Algorithm::worker() starting apartment_server at: " << input_options.apartment_server
+		          << std::endl;
+		ApartmentServer apartment_server(input_options.apartment_server);
 		/// Link the server
-		if(!entrance_server.Start()){
+		if(!apartment_server.Start()){
 			std::cerr << "Algorithm::worker() error in starting the entrance_server at : "
-			          << input_options.entrance_server << std::endl;
-			entrance_server.stop();
-			exit(1);
+			          << input_options.apartment_server << std::endl;
+			//apartment_server.stop();
+			return;
 		}
-		std::cout << "Algorithm::worker() entrance_server started at: " << input_options.entrance_server << std::endl;
+		std::cout << "Algorithm::worker() apartment_server started at: " << input_options.apartment_server << std::endl;
 
 		// start apartment client
-		std::cout << "Algorithm::worker() starting apartment_client" << std::endl;
-		ApartmentClient apartment_client(input_options.apartment_server);
+		/*
+		std::cout << "Algorithm::worker() starting entrance_client" << std::endl;
+		EntranceClient entrance_client(input_options.entrance_server);
 		/// Link the server
-		if(!apartment_client.Start()){
-			std::cerr << "Algorithm::worker() error in starting the apartment_client at : "
-			          << input_options.apartment_server << std::endl;
-			entrance_server.stop();
-			apartment_client.stop();
-			exit(2);
+		if(!entrance_client.Start()){
+			std::cerr << "Algorithm::worker() error in starting the entrance_client at : "
+			          << input_options.entrance_client << std::endl;
+			return;
 		}
 		std::cout << "Algorithm::worker() apartment_client started at: " << input_options.apartment_server << std::endl;
-
-		// init hardware manager
-		HardwareManager hw_mgr(apartment_client.ringBell());
-		if(!hw_mgr.initHardware()){
-			std::cerr << "Algorithm::worker() error in initialization of hardware manager" << std::endl;
-			entrance_server.stop();
-			apartment_client.stop();
-			exit(3);
-		}
+*/
 
 		// Create a element of data to be streamed
 		// LocalizationPublisher::data_t streamer_data;

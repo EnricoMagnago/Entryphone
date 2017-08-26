@@ -43,41 +43,48 @@ void Algorithm::getPublishPeriod(Cit_Types::Time_ms_t& ms) {
 
 /// @brief Executes the algorithm.
 void Algorithm::worker(const bool& terminating) {
-	std::cout << "Algorithm::worker() started correctly" << std::endl;
-
-	ApartmentClient app_client(input_options.apartment_server);
-	const HardwareManager hwMgr(HardwareManager::ringBellFun_t([&app_client] { app_client.ringBell((uint16_t)0); }));
-
-	std::cout << "Algorithm::worker() starting server at: " << input_options.entrance_server << std::endl;
-	EntranceServer ent_server(input_options.entrance_server);
 	try{
-
+		// start entrance server
+		std::cout << "Algorithm::worker() starting entrance_server at: " << input_options.entrance_server << std::endl;
+		EntranceServer entrance_server(input_options.entrance_server);
 		/// Link the server
-		if(!ent_server.Start()){
-			std::cerr << "Algorithm::worker() error in starting the server at : " << input_options.entrance_server
-			          << std::endl;
+		if(!entrance_server.Start()){
+			std::cerr << "Algorithm::worker() error in starting the entrance_server at : "
+			          << input_options.entrance_server << std::endl;
+			return;
 		}
-		std::cout << "Algorithm::worker() server started at: " << input_options.entrance_server << std::endl;
+		std::cout << "Algorithm::worker() entrance_server started at: " << input_options.entrance_server << std::endl;
+
+		// start apartment client
+		std::cout << "Algorithm::worker() starting apartment_client" << std::endl;
+		ApartmentClient apartment_client(input_options.apartment_server);
+		/// Link the server
+		if(!apartment_client.Start()){
+			std::cerr << "Algorithm::worker() error in starting the apartment_client at : "
+			          << input_options.apartment_server << std::endl;
+			return;
+		}
+		std::cout << "Algorithm::worker() apartment_client started at: " << input_options.apartment_server << std::endl;
+
+		// function pointer (lambda) to ringbell function
+		const HardwareManager::ringBellFun_t ringBell_fptr = [&apartment_client](){return apartment_client.ringBell();};
+		const HardwareManager hwMgr(ringBell_fptr);
 
 
 		// Create a element of data to be streamed
 		// LocalizationPublisher::data_t streamer_data;
 		TimeUtils::PeriodicTimer_t<Cit_Types::Time_ms_t, std::milli> timer(input_options.period_ms);
 		timer.start();
-//        Cit_Types::Time_ms_t time_ns;
+		// Cit_Types::Time_ms_t time_ns;
 
 		while(!terminating){
 
 			///< Waits for the next activation
 			timer.wait_for_next_activation();
-			std::cout << "invio dati" << std::endl;
 			// fill the streamer data structure with the status of the nodes
 
 			SDEBUG("Algorithm::worker i'm still alive");
-
 		}
-
-
 	}
 	catch(exception& e){
 		cout << "Algorithm::worker(), exception generated, exiting." << endl;

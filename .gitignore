@@ -36,5 +36,5 @@
 *build/
 
 # dependencies
-zeromq*
-common/wiringPi/*
+zeromq/*
+wiringPi/*

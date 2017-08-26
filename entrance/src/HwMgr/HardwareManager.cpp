@@ -1,14 +1,15 @@
-
 #include "HardwareManager.h"
 
 #include <iostream>
 #include <string.h>
-//#include "../../../common/wiringPi/wiringPi.h"
+//#include "../../../wiringPi/wiringPi.h"
 
 // pin where the button is wired to
 #define BELL_BUTTON_PIN 0 // i.e. physical pin 11
 
 HardwareManager::HardwareManager(const ringBellFun_t call_back) : ringBellFun(call_back) {}
+
+std::atomic_flag HardwareManager::already_handled = ATOMIC_FLAG_INIT;
 
 bool HardwareManager::initHardware() const {
 	// initialize wiringPi library
@@ -29,6 +30,7 @@ bool HardwareManager::initHardware() const {
 		return false;
 	}
 	return true;
+
 }
 
 void HardwareManager::call_back() {
@@ -36,9 +38,8 @@ void HardwareManager::call_back() {
 		delayMicroseconds(50 * 1000);
 		const int value = digitalRead(BELL_BUTTON_PIN);
 		if(value == HIGH){
-			this->ringBellFun();
+			const bool res = this->ringBellFun();
 		}
 		HardwareManager::already_handled.clear();
 	}
 }
-
