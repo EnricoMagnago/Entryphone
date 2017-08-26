@@ -9,7 +9,7 @@ class HardwareManager {
 public:
 	typedef std::function<void()> ringBellFun_t;
 
-	HardwareManager(const ringBellFun_t& call_back);
+	HardwareManager(const ringBellFun_t call_back);
 
 	bool initHardware() const;
 

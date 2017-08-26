@@ -8,7 +8,7 @@
 // pin where the button is wired to
 #define BELL_BUTTON_PIN 0 // i.e. physical pin 11
 
-HardwareManager::HardwareManager(const ringBellFun_t& call_back) : ringBellFun(call_back) {}
+HardwareManager::HardwareManager(const ringBellFun_t call_back) : ringBellFun(call_back) {}
 
 bool HardwareManager::initHardware() const {
 	// initialize wiringPi library
