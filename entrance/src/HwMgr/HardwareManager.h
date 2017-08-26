@@ -1,4 +1,3 @@
-
 #ifndef ENTRYPHONE_HARDWAREMANAGER_H
 #define ENTRYPHONE_HARDWAREMANAGER_H
 
@@ -7,19 +6,20 @@
 
 class HardwareManager {
 public:
-	typedef std::function<bool()> ringBellFun_t;
+        typedef std::function<bool()> ringBellFun_t;
 
-	HardwareManager(const ringBellFun_t call_back);
+        HardwareManager(const ringBellFun_t call_back);
 
-	bool initHardware() const;
+        bool initHardware();
 
-	void openDoor();
+        void openDoor();
 
 private:
-	static std::atomic_flag already_handled;
-	const ringBellFun_t ringBellFun;
+        typedef std::function<void()> call_back_t;
+        static std::atomic_flag already_handled;
+        const ringBellFun_t ringBellFun;
 
-	void call_back();
+        void call_back();
 };
 
 

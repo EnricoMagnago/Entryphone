@@ -8,7 +8,7 @@ project(Entryphone)
 # other flags to make compiler complain about "everything".
 #set(CMAKE_CXX_FLAGS "-std=c++17 -g -Wall -Wextra -Wpedantic -Wchkp -Wformat -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wnonnull-compare -Wignored-attributes -Wmisleading-indentation -Wmissing-include-dirs -Wuninitialized -Wstrict-overflow=5 -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wbool-compare -Wduplicated-cond -Wtautological-compare -Wfloat-equal -Wshadow -Wunused-macros -Wundef -Wcast-qual -Wcast-align -Wdelete-incomplete -Wuseless-cast -Wc++-compat -Wconversion -Wlogical-op -Waggregate-return -Wmissing-field-initializers -Wredundant-decls -Winline")
 
-set(CMAKE_CXX_FLAGS "-std=c++17 -g")
+set(CMAKE_CXX_FLAGS "-std=c++14 -g")
 
 #set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,7 +21,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(Threads)
 
 # find wiringPi
-# include(FindWiringPi.cmake)
+include(FindWiringPi.cmake)
 
 # find zmq.
 include(FindZMQ.cmake)
@@ -30,30 +30,30 @@ include(FindZMQ.cmake)
 include(common/cpp_readline/FindReadline.cmake)
 
 file(GLOB common_SRC
-		"common/*.cpp"
-		"common/*.c"
-		"common/*/*.cpp"
-		"common/*/*.c"
-		apartment/src/interface/ApartmentServerDefinitions.cpp)
+                "common/*.cpp"
+                "common/*.c"
+                "common/*/*.cpp"
+                "common/*/*.c"
+                apartment/src/interface/ApartmentServerDefinitions.cpp)
 
 set(ENTRY_MAIN
-		${common_SRC}
-		entrance/src/HwMgr/HardwareManager.cpp
-		entrance/src/interface/EntranceServerDefinitions.cpp
-		entrance/src/Algorithm.cpp
-		entrance/src/ConsoleInterface.cpp
-		entrance/src/server/EntranceServer.cpp
-		apartment/src/client/ApartmentClient.cpp
-		entrance/src/entrance_main.cpp
-		)
+                ${common_SRC}
+                entrance/src/HwMgr/HardwareManager.cpp
+                entrance/src/interface/EntranceServerDefinitions.cpp
+                entrance/src/Algorithm.cpp
+                entrance/src/ConsoleInterface.cpp
+                entrance/src/server/EntranceServer.cpp
+                apartment/src/client/ApartmentClient.cpp
+                entrance/src/entrance_main.cpp
+                )
 
 set(APARTMENT_MAIN
-		${common_SRC}
-		apartment/src/Algorithm.cpp
-		apartment/src/ConsoleInterface.cpp
-		apartment/src/server/ApartmentServer.cpp
-		apartment/src/apartment_main.cpp
-		)
+                ${common_SRC}
+                apartment/src/Algorithm.cpp
+                apartment/src/ConsoleInterface.cpp
+                apartment/src/server/ApartmentServer.cpp
+                apartment/src/apartment_main.cpp
+                )
 
 add_executable(Entryphone_entry ${ENTRY_MAIN})
 add_executable(Entryphone_apartment ${APARTMENT_MAIN})

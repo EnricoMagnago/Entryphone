@@ -1,398 +1,329 @@
 /*!****************************************************************************
  *    \file    TimeUtils.hpp
- *    \brief   A set of template definitions for time and periodic entities.
- *    \version 1.1
- *    \date    2017
+ *    \brief   A set of template definitions for periodic entities.
+ *    \version 1.0
+ *    \date    2015
  *****************************************************************************/
 /// @file   TimeUtils.hpp
 /// @brief  A set of template definitions for periodic entities.
-/// @author Valerio Magnago          <valerio.magnago@unitn.it>
-///         Paolo Bevilacqua         <paolo.bevilacqua@unitn.it>
-///
-/// \version 1.0
 /// @author Luigi Palopoli           <luigi.palopoli@unitn.it>
 ///         Bernardo Villalba Frías  <br.villalbafrias@unitn.it>
 ///         Alessio Colombo          <alessio.colombo_1@unitn.it>
 
 
+#ifndef TIME_UTILS_HPP
+#define TIME_UTILS_HPP
 
-
-#ifndef __TIME_UTILS_HPP__
-#define __TIME_UTILS_HPP__
-
-//  -------- Standard lib include -------------
-#include <ratio>
+#include <chrono>
+#include <sys/time.h>
 #include <time.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <mutex>
 
-namespace TimeUtils {
+namespace AcantoCommon {
 
-    /// Assert for wrong
-    template <typename T, template <intmax_t...> typename Template>
-    struct is_ratio_specialization: std::false_type {};
+  using standard_usec =  std::chrono::microseconds;
+  using standard_msec =  std::chrono::milliseconds;
+  using standard_nsec =  std::chrono::nanoseconds;
 
-    template <template <intmax_t...> typename Template, intmax_t... Args>
-    struct is_ratio_specialization<Template<Args...>, Template> : std::true_type {};
+  ///@brief enum class to be used to specify the granularity of time representations
+  enum class Granularity {
+    MILLI, MICRO, NANO
+  };
 
+    /// Internal structure for AcantoTime
+  template<typename NumericType, int ticks_per_sec=1000>
+  struct AcantoTime_ {
+    typedef NumericType value_type;
+    value_type value;
 
+    NumericType get_usec() const {  return value * 1000000/ticks_per_sec; }
+    NumericType get_msec() const {  return value * 1000/ticks_per_sec; }
+    NumericType get_nsec() const {  return value * 1000000000/ticks_per_sec; }
 
+    standard_usec  get_standard_usec() const {return standard_usec(value * 1000000/ticks_per_sec);};
+    standard_msec  get_standard_msec() const  {return standard_msec(value * 1000/ticks_per_sec);};
+    standard_nsec  get_standard_nsec()  const {return standard_nsec(value * 1000000000/ticks_per_sec);};
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///                                                           GENERAL TIME TEMPLATE                                                         //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @brief Internal structure for GeneralTime_
-    template<typename value_type, typename internal_sec_ratio = std::milli>
-    struct GeneralTime_ {
-
-        static_assert(is_ratio_specialization<internal_sec_ratio, std::ratio>{}, "Second element of template list must be s std::ratio type");
-        static_assert(std::is_integral<value_type>::value,"First template type must be an integer");
-
-        /// To give access to others timeUtils template private members
-        //friend class GeneralTime_;
-
-    public:
-        value_type value;  // struct member (time)
-
-
-        /// @brief convert duration from input_sec_ratio to output_sec_ratio
-        template<typename input_sec_ratio, typename output_sec_ratio, typename value_type_output, typename value_type_input>
-        static value_type_output convert_value(value_type_input duration_) {
-            // Static asserts
-            static_assert(is_ratio_specialization<input_sec_ratio, std::ratio>{},  "input_sec_ratio must be a std::ratio type");
-            static_assert(is_ratio_specialization<output_sec_ratio, std::ratio>{}, "output_sec_ratio must be a std::ratio type");
-            static_assert(std::is_integral<value_type_input>::value,"value_type_input must be an integer");
-            static_assert(std::is_integral<value_type_output>::value,"value_type_output must be an integer");
-            // input_sec_ratio  is the ratio of the input value
-            // output_sec_ratio is the ratio of the output value
-            // value is the value type (integer value)
-            return (((value_type_output)duration_) * output_sec_ratio::den * input_sec_ratio::num) / (input_sec_ratio::den * output_sec_ratio::num );
-        }
-
-    public:
-
-        /// @brief default constructor
-        GeneralTime_() : value(0){ }
-
-        /// @brief initializator
-        GeneralTime_(value_type v) : value(v) {};
-
-        /// @brief copy constructor
-        template<typename value_type_tmp, typename input_sec_ratio>
-        GeneralTime_(GeneralTime_<value_type_tmp,input_sec_ratio> gt_) {
-            value = gt_.get_duration<internal_sec_ratio,value_type>();
-        }
-
-        /// @brief return get the duration value in the desired ratio (i.e. output_sec_ratio)
-        template<typename output_sec_ratio,typename value_type_output>
-        inline value_type_output get_duration() const {
-            // Convert from internal_sec_ratio to output_sec_ratio
-            return convert_value<internal_sec_ratio,output_sec_ratio,value_type_output>(value);
-        }
-
-
-        /// @brief  add a specific duration to the current value
-        template<typename input_ratio, typename input_value>
-        void increment_duration(input_value val) {
-            static_assert(std::is_integral<input_value>::value,"input_value must be an integer");
-            value = value + convert_value<input_ratio,internal_sec_ratio,value_type>(val);
-        }
-
-
-        /// @brief return set the duration value from a desired ratio (i.e. input_sec_ratio)
-        template<typename input_sec_ratio>
-        void set_duration(value_type duration_) {
-            // Convert from input_sec_ratio to internal sec ratio
-            this->value = convert_value<input_sec_ratio,internal_sec_ratio,value_type>(duration_);
-            return;
-        }
-
-        // Get fraction value
-        static intmax_t get_num()  {return  internal_sec_ratio::num;}
-        static intmax_t get_den()  {return  internal_sec_ratio::den;}
-        static double   get_ratio(){return  get_num()/(double)get_den();}
-
-        // SPECIALIZE SOME GETTER
-        /// @brief specialize getter for milliseconds
-        template<typename value_type_output>
-        value_type get_msec() const { return get_duration<std::milli,value_type_output>();}
-        /// @brief specialize getter for microseconds
-        template<typename value_type_output>
-        value_type get_usec() const { return get_duration<std::micro,value_type_output>();}
-        /// @brief specialize getter for nanoseconds
-        template<typename value_type_output>
-        value_type get_nsec() const { return get_duration<std::nano,value_type_output>(); }
-
-        // SPECIALIZE SOME SETTER
-        /// @brief specialize setter for milliseconds
-        void set_msec(value_type duration_) { return set_duration<std::milli>(duration_);}
-        /// @brief specialize setter for microseconds
-        void set_usec(value_type duration_) { return set_duration<std::micro>(duration_);}
-        /// @brief specialize setter for nanoseconds
-        void set_nsec(value_type duration_) { return set_duration<std::nano>(duration_); }
-
-
-
-        /// @brief Define assigment between GeneralTime_ with different granularity
-        template<typename value_type_input, typename input_sec_ratio>
-        GeneralTime_<value_type, internal_sec_ratio> &operator=(const GeneralTime_<value_type_input,input_sec_ratio> &c) {
-
-            // Assert if bad input
-            static_assert(is_ratio_specialization<input_sec_ratio, std::ratio>{}, "Second element of template list must be s std::ratio type");
-            static_assert(std::is_integral<value_type_input>::value,"First template type must be an integer");
-
-            // Convert value properly
-            value = c.get_duration<internal_sec_ratio,value_type>();
-
-            return *this;
-        }
-
-        ///< OVERLOAD BINARY ARITHMETIC OPERATORS
-        /// @brief overload operator<
-        template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-        friend inline bool operator< (const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r);
-        /// >, <=, >= are deduced from this one
-
-
-        /// @brief overload operator==
-        template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-        friend inline bool operator== (const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r);
-
-        /// @brief overload operator a+b
-        template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-        friend inline GeneralTime_<value_type_l,sec_ratio_l> operator+ (const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r);
-
-
-        /// @brief overload operator a-b
-        template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-        friend inline GeneralTime_<value_type_l,sec_ratio_l> operator- (const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r);
-
-
-        /// @brief overload operator *
-        template<typename sec_ratio_l, typename value_type_l, typename NumericType>
-        friend inline GeneralTime_<value_type_l,sec_ratio_l> operator*(const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const NumericType v);
-
-        /// @brief get clock time and put it in the GeneralTime structure
-        void _getSystemTime() {
-            timespec time;
-            //CLOCK_MONOTONIC
-            clock_gettime(CLOCK_REALTIME, &time);
-            this->set_duration<std::ratio<1,1>>(time.tv_sec);
-            this->increment_duration<std::nano>(time.tv_nsec);
-            return;
-        }
-
+    AcantoTime_(NumericType v) :value(v) {};
+    AcantoTime_(const AcantoTime_<NumericType, ticks_per_sec> & c) {
+      operator=(c);
     };
-
-
-    ///< OVERLOAD ARITHMETIC OPERATORS
-    /// @brief overload operator +
-    template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-    inline GeneralTime_<value_type_l,sec_ratio_l> operator+ (const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r){
-        //value_type_l value = ;
-        //t_l.get_duration<std::nano>();
-
-        value_type_l value = t_l.template get_duration<sec_ratio_l,value_type_l>() + t_r.template get_duration<sec_ratio_l,value_type_l>();//t_l.get_duration<std::milli>();
-        GeneralTime_<value_type_l,sec_ratio_l> output(value);
-        //GeneralTime_<value_type_l,sec_ratio_l> output(t_l.get_duration<sec_ratio_l>() + t_r.get_duration<sec_ratio_l>());   // convert b in a fraction and sum
-        return output;
+    AcantoTime_<NumericType, ticks_per_sec> & operator=(const AcantoTime_<NumericType, ticks_per_sec> & c) {
+      value = c.value;
+      return *this;
     }
 
+  };
 
-    /// @brief overload operator -
-    template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-    inline GeneralTime_<value_type_l,sec_ratio_l> operator- (const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r){
-        //value_type_l value = ;
-        //t_l.get_duration<std::nano>();
 
-        value_type_l value = t_l.template get_duration<sec_ratio_l,value_type_l>() - t_r.template get_duration<sec_ratio_l,value_type_l>();//t_l.get_duration<std::milli>();
-        GeneralTime_<value_type_l,sec_ratio_l> output(value);
-        //GeneralTime_<value_type_l,sec_ratio_l> output(t_l.get_duration<sec_ratio_l>() + t_r.get_duration<sec_ratio_l>());   // convert b in a fraction and sum
-        return output;
+  template <typename NumericType, Granularity g>
+  struct AcantoTime {};
+
+  template <typename NumericType>
+  struct AcantoTime<NumericType, Granularity::MILLI>: public AcantoTime_<NumericType, 1000> {
+    AcantoTime(NumericType v=0) : AcantoTime_<NumericType,1000>(v) {};
+
+    AcantoTime(const standard_msec & v): AcantoTime_<NumericType,1000>(v.count()) {};
+    AcantoTime(const AcantoTime<NumericType,Granularity::MILLI> & c):AcantoTime_<NumericType, 1000>(c) {
+    };
+    AcantoTime<NumericType,Granularity::MILLI> & operator=(const AcantoTime<NumericType,Granularity::MILLI> & c) {
+      AcantoTime_<NumericType, 1000>::operator=(c);
+      return *this;
     }
 
-    /// @brief overload operator *
-    template<typename sec_ratio_l, typename value_type_l, typename NumericType>
-    GeneralTime_<value_type_l,sec_ratio_l> operator*(const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const NumericType v) {
-        static_assert(std::is_integral<NumericType>::value,"First template type must be an integer");
-        GeneralTime_<value_type_l,sec_ratio_l> output(v* (t_l.template get_duration<sec_ratio_l,value_type_l>()));
-        return output;
+    //void setToNow() { value = getSystemTime<NumericType, 1000>(); };
+  };
+
+  template <typename NumericType>
+  struct AcantoTime<NumericType, Granularity::MICRO>: public AcantoTime_<NumericType,1000000> {
+    AcantoTime(NumericType v=0) : AcantoTime_<NumericType,1000000>(v) {};
+    AcantoTime(const standard_usec & v): AcantoTime_<NumericType,1000000>(v.count()) {};
+    AcantoTime(const AcantoTime<NumericType,Granularity::MICRO> & c):AcantoTime_<NumericType, 1000000>(c) {
+    };
+    AcantoTime<NumericType,Granularity::MICRO> & operator=(const AcantoTime<NumericType,Granularity::MICRO> & c) {
+      AcantoTime_<NumericType, 1000000>::operator=(c);
+      return *this;
     }
+    //void setToNow() { value = getSystemTime<NumericType, 1000000>(); };
+  };
 
-    ///< OVERLOAD BINARY ARITHMETIC OPERATORS
-    /// @brief overload operator<
-    template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-    inline bool operator< (const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r){
-        return (t_l.value * sec_ratio_l::num * sec_ratio_r::den) <  (t_r.value * sec_ratio_r::num * sec_ratio_l::den);
+  template <typename NumericType>
+  struct AcantoTime<NumericType, Granularity::NANO>: public AcantoTime_<NumericType, 1000000000> {
+    AcantoTime(NumericType v=0) : AcantoTime_<NumericType,1000000000>(v) {};
+    AcantoTime(const standard_nsec & v): AcantoTime_<NumericType,1000000000>(v.count()) {};
+    AcantoTime(const AcantoTime<NumericType,Granularity::NANO> & c):AcantoTime_<NumericType, 1000000000>(c)  {
+      operator=(c);
+    };
+    AcantoTime<NumericType,Granularity::NANO> & operator=(const AcantoTime<NumericType,Granularity::NANO> & c) {
+      AcantoTime_<NumericType, 1000000000>::operator=(c);
+      return *this;
     }
-
-    /// @brief overload operator==
-    template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-    inline bool operator== (const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r) {
-        return (t_l.value * sec_ratio_l::num * sec_ratio_r::den) == (t_r.value * sec_ratio_r::num * sec_ratio_l::den);
-    }
-
-    /// >, <=, >= are deduced from this one
-    template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-    inline bool operator> (const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r){ return t_r < t_l; }
-    template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-    inline bool operator<=(const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r){ return !(t_l > t_r); }
-    template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-    inline bool operator>=(const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r){ return !(t_l < t_r); }
-    template<typename sec_ratio_l, typename value_type_l, typename sec_ratio_r, typename value_type_r>
-    inline bool operator!=(const GeneralTime_<value_type_l,sec_ratio_l>& t_l, const GeneralTime_<value_type_r,sec_ratio_r>& t_r){ return !(t_l == t_r); }
-//  __________________________________________________________________________________________________________________________________________________ //
+    //void setToNow() { value = getSystemTime<NumericType, 1000000000>(); };
+  };
 
 
 
 
+  /// Internal representation used for AcantoTimeConstants
+  template<typename NumericType, NumericType V, int ticks_per_sec=1000>
+  struct AcantoTimeConstant_: public std::integral_constant<NumericType, V> {
+    using typename std::integral_constant<NumericType, V>::value_type;
+    using std::integral_constant<NumericType, V>::value;
+
+
+    static NumericType get_usec() {  return value * 1000000/ticks_per_sec; }
+    static NumericType get_msec() {  return value * 1000/ticks_per_sec; }
+    static NumericType get_nsec() {  return value * 1000000000/ticks_per_sec; }
+
+
+    static standard_usec  get_standard_usec()  {return standard_usec(value * 1000000/ticks_per_sec);};
+    static standard_msec  get_standard_msec()  {return standard_msec(value * 1000/ticks_per_sec);};
+    static standard_nsec  get_standard_nsec()  {return standard_nsec(value * 1000000000/ticks_per_sec);};
+
+    static constexpr bool is_null = (value == 0);
+    static constexpr bool is_not_null = (value != 0);
+
+  };
+
+  /// @brief general way to express a time constant in Acanto
+  ///
+  /// A time constant is actually a type that can be used for compile time consistency
+  /// checks (e.g., to enforce that a port producing data at 10ms is connected to a
+  /// sensor receiving data at the same period). The constant is a template of a numeric
+  /// type (used for internal representation), a value and a graularity.
+  template <typename NumericType,  NumericType V, Granularity g>
+  struct AcantoTimeConstant {
+  };
+
+  template <typename NumericType, NumericType V>
+  struct AcantoTimeConstant<NumericType, V, Granularity::MILLI>: public AcantoTimeConstant_<NumericType, V, 1000> {
+    static AcantoTime<NumericType, Granularity::MILLI> getAcantoMs() {return AcantoTime<NumericType, Granularity::MILLI>(V);};
+    static AcantoTime<NumericType, Granularity::MICRO> getAcantoUs() {return AcantoTime<NumericType, Granularity::MICRO>(V*1000);};
+    static AcantoTime<NumericType, Granularity::NANO> getAcantoNs() {return AcantoTime<NumericType, Granularity::NANO>(V*1000*1000);};
+  };
+
+  template <typename NumericType, NumericType V>
+  struct AcantoTimeConstant<NumericType, V, Granularity::MICRO>: public AcantoTimeConstant_<NumericType,V, 1000000> {
+    static AcantoTime<NumericType, Granularity::MICRO> getAcantoTimeUs() {return AcantoTime<NumericType, Granularity::MICRO>(V);};
+    static AcantoTime<NumericType, Granularity::NANO>  getAcantoTimeNs() {return AcantoTime<NumericType, Granularity::MICRO>(V*1000);};
+  };
+
+
+  template <typename NumericType, NumericType V>
+  struct AcantoTimeConstant<NumericType, V, Granularity::NANO>: public AcantoTimeConstant_<NumericType,V, 1000000000> {
+    static AcantoTime<NumericType, Granularity::NANO> getAcantoTimeNs() {return AcantoTime<NumericType, Granularity::NANO>(V);};
+  };
+
+  //AcantoTime vs AcantoTimeConstant operators
+
+  template<typename NumericType,  NumericType V, Granularity g>
+  AcantoTime<NumericType, g>  operator+(AcantoTime<NumericType, g> & a1, AcantoTimeConstant<NumericType, V, g>& a2) {return AcantoTime<NumericType, g>(a1.value+a2.value);}
+
+  template<typename NumericType,  NumericType V, Granularity g>
+  AcantoTime<NumericType, g>  operator+( AcantoTimeConstant<NumericType, V, g>& a2, AcantoTime<NumericType, g> & a1 ) {return AcantoTime<NumericType, g>(a1.value+a2.value);}
+
+
+  //AcantoTime vs AcantoTime operators
+  template<typename NumericType,  Granularity g>
+  AcantoTime<NumericType, g>  operator+(const AcantoTime<NumericType, g> & a1, const AcantoTime<NumericType, g>& a2) {return AcantoTime<NumericType, g>(a1.value+a2.value);}
+
+  template<typename NumericType,  Granularity g>
+  AcantoTime<NumericType, g>  operator-(const AcantoTime<NumericType, g> & a1, const AcantoTime<NumericType, g>& a2) {return AcantoTime<NumericType, g>(a1.value-a2.value);}
+
+  template<typename NumericType,  Granularity g>
+  NumericType  operator/(const AcantoTime<NumericType, g> & a1, const AcantoTime<NumericType, g>& a2) {return a1.value/a2.value;}
 
 
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///                                                  GENERAL TIME CONSTANT TEMPLATE                                                         //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  template<typename NumericType, Granularity g>
+  bool  operator<(const AcantoTime<NumericType, g> & a1, const AcantoTime<NumericType, g>& a2) { return a1.value < a2.value; }
 
-    /// @brief general way to express a time constant
+  template<typename NumericType, Granularity g>
+  bool  operator>(const AcantoTime<NumericType, g> & a1, const AcantoTime<NumericType, g>& a2) { return a1.value > a2.value; }
+
+  template<typename NumericType, Granularity g>
+  bool  operator!=(const AcantoTime<NumericType, g> & a1, const AcantoTime<NumericType, g>& a2) { return a1.value != a2.value; }
+
+  template<typename NumericType, Granularity g>
+  bool  operator==(const AcantoTime<NumericType, g> & a1, const AcantoTime<NumericType, g>& a2) { return a1.value == a2.value; }
+
+
+  //AcantoTime vs NumericType
+  template<typename NumericType, Granularity g>
+  AcantoTime<NumericType, g>  operator*(NumericType v, const AcantoTime<NumericType, g>& a2) {return AcantoTime<NumericType, g>(v*a2.value);}
+
+  template<typename NumericType,  Granularity g>
+  AcantoTime<NumericType, g>  operator*(const AcantoTime<NumericType, g>& a2, NumericType v) {return AcantoTime<NumericType, g>(v*a2.value);}
+
+
+  /// Utility functions
+  template<typename NumericType, int ticks_per_sec>
+  NumericType _getSystemTime() {
+    timespec time;
+    clock_gettime(CLOCK_MONOTONIC, &time);
+
+    return (1000000000ULL*time.tv_sec+time.tv_nsec)/(1000000000ULL/ticks_per_sec);
+  }
+
+
+  template <typename NumericType, Granularity g>
+  void getSystemTime(AcantoTime<NumericType, g> & t) {}
+
+  template <typename NumericType>
+  void getSystemTime(AcantoTime<NumericType, Granularity::MILLI> & t) {
+    t =AcantoTime<NumericType, Granularity::MILLI>( _getSystemTime<NumericType,1000ULL>());
+  }
+
+  template <typename NumericType>
+  void getSystemTime(AcantoTime<NumericType, Granularity::MICRO> & t) {
+    t =AcantoTime<NumericType, Granularity::MICRO>( _getSystemTime<NumericType,1000000ULL>());
+  }
+
+  template <typename NumericType>
+  void getSystemTime(AcantoTime<NumericType, Granularity::NANO> & t) {
+    t =AcantoTime<NumericType, Granularity::NANO>( _getSystemTime<NumericType,1000000000ULL>());
+  }
+
+
+
+
+
+
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ///                                                           TIMERS                                                                        //
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  ///@brief Instrumental class for timers
+  ///
+  /// This particular timer uses the POSIX's clock nanosleep
+  /// facility. This class is a template of integer type and
+  /// tick_per_sec.
+  template <typename INT_TYPE, int tick_per_sec>
+  class PeriodicTimer_ {
+    struct timespec r;
+    INT_TYPE period;
+    std::mutex mtx;
+  protected:
+    ///@brief increments the interal spec by a specified amount
     ///
-    /// A time constant is actually a type that can be used for compile time consistency
-    /// checks (e.g., to enforce that a port producing data at 10ms is connected to a
-    /// sensor receiving data at the same period). The constant is a template of a numeric
-    /// type (used for internal representation), a value and a graularity.
-
-    /// Internal representation used for constant GeneralTime_
-    template<typename numeric_type, numeric_type V, typename internal_sec_ratio = std::milli>
-    struct GeneralTimeConstant_ : public std::integral_constant<numeric_type, V> {
-        static_assert(is_ratio_specialization<internal_sec_ratio, std::ratio>{}, "Second element of template list must be s std::ratio type");
-        static_assert(std::is_integral<numeric_type>::value,"First template type must be an integer");
-
-    private:
-        // Define static value
-        using typename std::integral_constant<numeric_type, V>::value_type;
-        using std::integral_constant<numeric_type, V>::value;
-
-
-    public:
-        // Get fraction value
-        static intmax_t get_num()  {return  internal_sec_ratio::num;}
-        static intmax_t get_den()  {return  internal_sec_ratio::den;}
-        static double   get_ratio(){return  get_num()/(double)get_den();}
-
-
-
-        /// @brief return the value in the desired ratio of second (i.e.
-        /// get_duration<std::milli>() return the duration expessed in milliseconds)
-        ///
-        template<typename output_sec_ratio>
-        static numeric_type get_duration() {
-            static_assert(is_ratio_specialization<output_sec_ratio, std::ratio>{}, "get_duration want a std::ratio type");
-            return value * output_sec_ratio::den * internal_sec_ratio::num / (internal_sec_ratio::den * output_sec_ratio::num );
-        }
-
-        // get time with a particular granularity
-        static numeric_type get_msec() { return get_duration<std::milli>();}
-        static numeric_type get_usec() { return get_duration<std::micro>();}
-        static numeric_type get_nsec() { return get_duration<std::nano>(); }
-
-
-        static constexpr bool is_null = (value == 0);
-        static constexpr bool is_not_null = (value != 0);
-
-
+    ///@param d quantity to sum up to the internal timer. It is specified in ticks.
+    ///       Therefore the summed amount is d/ticks_per_sec
+    void add(INT_TYPE d) {
+      d *= 1000000000ULL / tick_per_sec;
+      d += r.tv_nsec;
+      while (d >= 1000000000ULL) {
+        d -= 1000000000ULL;
+        r.tv_sec += 1;
+      }
+      r.tv_nsec = d;
     };
 
-    // TODO: overload same operator as general time, implementing cross operation
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///                                                           TIMERS                                                                        //
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    ///@brief Instrumental class for timers
+  public:
+    /// @brief Constructor for the class
     ///
-    /// This particular timer uses the POSIX's clock nanosleep
-    /// facility. This class is a template of integer type and
-    /// tick_per_sec.
-    template<typename NumericType, typename internal_sec_ratio>
-    class PeriodicTimer_t {
-        struct timespec r;
-        GeneralTime_<NumericType,internal_sec_ratio> period;
+    /// @param per Period specified in ticks.
+    PeriodicTimer_(INT_TYPE per): period(per) {};
 
-    protected:
-        ///@brief increments the interal spec by a specified amount
-        ///
-        ///@param d quantity to sum up to the internal timer. It is specified in ticks.
-        ///       Therefore the summed amount is d/ticks_per_sec
-        template<typename NumericType_aux, typename sec_ratio_aux>
-        void add(const GeneralTime_<NumericType_aux,sec_ratio_aux> &d) {
-            uint64_t tmp = d.template get_duration<std::nano,uint64_t>();
-            tmp += r.tv_nsec;                      // add to tmp the nanoseconds in the timer clock
-            while (tmp >= 1000000000ULL) {
-                tmp -= 1000000000ULL;
-                r.tv_sec += 1;                    // remove 1 second to the nanosecond and increment second counter
-            }
-            r.tv_nsec = tmp;                      // now that nanosecond are less than the nanosecon in a second assign to r.tv_nsec the time in nanosecond
-        }
+    /// @brief Starts the timer
+    ///
+    /// @param offset Intial offset before the first time the timer expires
+    void start(INT_TYPE offset) {
+      clock_gettime(CLOCK_MONOTONIC, &r);
+      add(offset);
+    }
 
-    public:
+    /// @brief Blocks the caller untile the next timer expiration.
+    /// Each periodic task should call this as a first operation and then
+    /// be blocked untile the next activation firing.
+    void wait_for_next_activation() {
+      clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &r, NULL);
+      std::unique_lock<std::mutex> mtx_loc(mtx);
+      add(period);
+    }
 
-        /// @brief Constructor for the class
-        ///
-        /// @param per Period specified in ticks.
-        template<typename input_numeric>
-        PeriodicTimer_t(input_numeric value){
-            GeneralTime_<input_numeric,internal_sec_ratio> per(value);
-            setPeriod(per);
-        }
+     /// @brief This block set the activation period.
+     void setPeriod(const INT_TYPE per){
+       std::unique_lock<std::mutex> mtx_loc(mtx);
+       period = per;
+     }
 
 
-        /// @brief Constructor for the class
-        ///
-        /// @param per Period specified in ticks.
-        template<typename input_numeric, typename input_ratio>
-        PeriodicTimer_t(GeneralTime_<input_numeric,input_ratio> per){
-            setPeriod(per);
-        }
+  };
 
 
-        /// @brief Set the period of the timer
-        ///
-        /// @param set period of the timer
-        template<typename NumericType_aux, typename sec_ratio_aux>
-        void setPeriod(GeneralTime_<NumericType_aux,sec_ratio_aux> per) {
-            period = per;
-        }
+  template <typename INT_TYPE, Granularity g>
+  class PeriodicTimer {};
 
-        /// @brief get the period of the timer
-        ///
-        /// @param get period of the timer
-        GeneralTime_<NumericType,internal_sec_ratio> getPeriod() {
-            return period;
-        }
+  ///@brief Periodic timer spcialised for milli seconds.
+  ///
+  ///The period has to be specified in milliseconds.
+  template <typename INT_TYPE>
+  class PeriodicTimer<INT_TYPE, Granularity::MILLI>: public PeriodicTimer_<INT_TYPE,1000> {
+  public:
+    PeriodicTimer(INT_TYPE per): PeriodicTimer_<INT_TYPE,1000>(per) {};
+  };
 
-        /// @brief Starts the timer
-        ///
-        /// @param offset Intial offset before the first time the timer expires
-        template<typename NumericType_aux, typename sec_ratio_aux>
-        void start(const GeneralTime_<NumericType_aux,sec_ratio_aux> offset) {
-            clock_gettime(CLOCK_MONOTONIC, &r);
-            add(offset);
-        }
+  ///@brief Periodic timer spcialised for micro seconds.
+  ///
+  ///The period has to be specified in microseconds.
+  template <typename INT_TYPE>
+  class PeriodicTimer<INT_TYPE, Granularity::MICRO>: public PeriodicTimer_<INT_TYPE,1000000> {
+  public:
+    PeriodicTimer(INT_TYPE per): PeriodicTimer_<INT_TYPE,1000000>(per) {};
+  };
 
-        /// @brief Starts the timer
-        ///
-        void start() {
-            clock_gettime(CLOCK_MONOTONIC, &r);
-        }
+  ///@brief Periodic timer spcialised for nanoseconds.
+  ///
+  ///The period has to be specified in nanoseconds.
+  template <typename INT_TYPE>
+  class PeriodicTimer<INT_TYPE, Granularity::NANO>: public PeriodicTimer_<INT_TYPE,1000000000> {
+  public:
+    PeriodicTimer(INT_TYPE per): PeriodicTimer_<INT_TYPE,1000000000>(per) {};
+  };
 
-        /// @brief Blocks the caller untile the next timer expiration.
-        /// Each periodic task should call this as a first operation and then
-        /// be blocked untile the next activation firing.
-        void wait_for_next_activation() {
-            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &r, NULL);
-
-            // std::cout << "Tempo attuale :    " << r.tv_sec <<"[s]\t\t" << r.tv_nsec <<  "[ns]"<<std::endl;
-            add(period);
-            // std::cout << "Tempo fine ciclo:  " <<  r.tv_sec <<"[s]\t\t" << r.tv_nsec << "[ns]"<<std::endl;
-            // std::cout << "Differenza:        \t\t\t" <<  period*1000000000ULL/1000 <<"[ns]"<<std::endl;
-        }
-    };
+  typedef PeriodicTimer<uint64_t, Granularity::MILLI> PeriodicTimerMs;
 }
-#endif // __TIME_UTILS_HPP__
+#endif
