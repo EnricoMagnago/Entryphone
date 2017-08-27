@@ -14,40 +14,42 @@
 HardwareManager::ringBellFun_t HardwareManager::ringBellFun = nullptr;
 std::atomic_flag HardwareManager::already_handled = ATOMIC_FLAG_INIT;
 
-HardwareManager::HardwareManager(ringBellFun_t call_back) {
+bool HardwareManager::initHardware(ringBellFun_t call_back) {
+  // set call_back
   assert(HardwareManager::ringBellFun == nullptr);
   HardwareManager::ringBellFun = call_back;
-}
 
-bool HardwareManager::initHardware() {
-        // initialize wiringPi library
+  // initialize wiringPi library
 
-        if(wiringPiSetup() < 0){
-                std::cerr << "\"Unable to setup wiringPi: " << strerror(errno) << std::endl;
-                return false;
-        }
+  if(wiringPiSetup() < 0){
+    std::cerr << "\"Unable to setup wiringPi: " << strerror(errno) << std::endl;
+    return false;
+  }
 
-        // ----- BELL BUTTON -----
-        // specify pin as input
-        pinMode(BELL_BUTTON_PIN, INPUT);
-        // connect the pull up resistor
-        pullUpDnControl(BELL_BUTTON_PIN, PUD_UP);
-        // and attach myInterrupt() to the interrupt
-        if(wiringPiISR(BELL_BUTTON_PIN, INT_EDGE_FALLING, HardwareManager::call_back) < 0){
-                std::cerr << "Unable to setup ISR: " << strerror(errno) << std::endl;
-                return false;
-        }
-        return true;
+  // ----- BELL BUTTON -----
+  // specify pin as input
+  pinMode(BELL_BUTTON_PIN, INPUT);
+  // connect the pull up resistor
+  pullUpDnControl(BELL_BUTTON_PIN, PUD_UP);
+  // and attach myInterrupt() to the interrupt
+  if(wiringPiISR(BELL_BUTTON_PIN, INT_EDGE_FALLING, HardwareManager::call_back) < 0){
+    std::cerr << "Unable to setup ISR: " << strerror(errno) << std::endl;
+    return false;
+  }
+  return true;
 
 }
 
 void HardwareManager::call_back() {
-        if(!HardwareManager::already_handled.test_and_set()){
-                delayMicroseconds(50 * 1000);
-                const int value = digitalRead(BELL_BUTTON_PIN);
-                if(value == HIGH){
-                  const bool res = HardwareManager::ringBellFun();
-                }
-                HardwareManager::already_handled.clear();
-        }
+  if(!HardwareManager::already_handled.test_and_set()){
+    // wait 50 ms and check if pin is still LOW: filter spourious changes.
+    delay(50);
+    const int value = digitalRead(BELL_BUTTON_PIN);
+    if(value == LOW){
+      const bool res = HardwareManager::ringBellFun();
+    }
+    // wait 1 s: forbid to re-ring the bell too soon.
+    delay(1000);
+    HardwareManager::already_handled.clear();
+  }
 }

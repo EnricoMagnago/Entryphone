@@ -8,11 +8,11 @@ class HardwareManager {
 public:
         typedef std::function<bool()> ringBellFun_t;
 
-        HardwareManager(ringBellFun_t call_back);
+        HardwareManager() = delete;
 
-        bool initHardware();
+        static bool initHardware(ringBellFun_t call_back);
 
-        void openDoor();
+        static void openDoor();
 
 private:
         static std::atomic_flag already_handled;
