@@ -49,7 +49,7 @@ int main() {
 
     /* Input option for alghorithm class */
     unique_ptr<Algorithm::input_options_t> alg_opt =  unique_ptr<Algorithm::input_options_t>(new Algorithm::input_options_t());
-    alg_opt->period_ms        = 250;
+    alg_opt->period_ms        = 50;
     //alg_opt->publisher        = "tcp://127.0.0.1:6669";
     alg_opt->publisher        = "tcp://192.168.1.254:6669";
 
