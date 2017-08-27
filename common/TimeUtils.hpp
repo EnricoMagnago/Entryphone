@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <mutex>
 
-namespace AcantoCommon {
+namespace TimeUtils {
 
   using standard_usec =  std::chrono::microseconds;
   using standard_msec =  std::chrono::milliseconds;
