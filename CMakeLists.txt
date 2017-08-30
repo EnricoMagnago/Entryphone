@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.5)
 
 project(Entryphone)
 
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
+
 
 # CMake does not support c++17 yet, force compilation with -std=c++17
 # -g : debug
@@ -18,10 +23,15 @@ find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # include threads
-find_package(Threads)
+find_package(Threads REQUIRED)
+
+# Find the QtWidgets library
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Core REQUIRED)
+
 
 # find wiringPi
-include(FindWiringPi.cmake)
+#include(FindWiringPi.cmake)
 
 # find zmq.
 include(FindZMQ.cmake)
@@ -34,7 +44,8 @@ file(GLOB common_SRC
                 "common/*.c"
                 "common/*/*.cpp"
                 "common/*/*.c"
-                apartment/src/interface/ApartmentServerDefinitions.cpp)
+                apartment/src/interface/ApartmentServerDefinitions.cpp
+                )
 
 set(ENTRY_MAIN
                 ${common_SRC}
@@ -45,6 +56,7 @@ set(ENTRY_MAIN
                 entrance/src/server/EntranceServer.cpp
                 apartment/src/client/ApartmentClient.cpp
                 entrance/src/entrance_main.cpp
+                entrance/src/gui/mainwindow.cpp
                 )
 
 set(APARTMENT_MAIN
@@ -59,9 +71,18 @@ add_executable(Entryphone_entry ${ENTRY_MAIN})
 add_executable(Entryphone_apartment ${APARTMENT_MAIN})
 
 ## add the include directory to our compile directives
-target_include_directories(Entryphone_entry PUBLIC ${ZMQ_INCLUDE_DIR} ${Readline_INCLUDE_DIR})
-target_include_directories(Entryphone_apartment PUBLIC ${ZMQ_INCLUDE_DIR} ${Readline_INCLUDE_DIR})
+target_include_directories(Entryphone_entry PUBLIC
+  ${ZMQ_INCLUDE_DIR} ${Readline_INCLUDE_DIR}
+  ${Qt5Widgets_INCLUDE_DIRS})
+
+target_include_directories(Entryphone_apartment PUBLIC
+  ${ZMQ_INCLUDE_DIR} ${Readline_INCLUDE_DIR}
+  ${Qt5Widgets_INCLUDE_DIRS})
 
 ## at the 0mq library to our link directive
-target_link_libraries(Entryphone_entry PUBLIC ${ZMQ_LIBRARIES} ${Readline_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} ${WIRINGPI_LIBRARIES})
-target_link_libraries(Entryphone_apartment PUBLIC ${ZMQ_LIBRARIES} ${Readline_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Entryphone_entry PUBLIC
+  ${ZMQ_LIBRARIES} ${Readline_LIBRARY} ${CMAKE_THREAD_LIBS_INIT}
+  Qt5::Widgets Qt5::Core) # ${WIRINGPI_LIBRARIES}
+
+target_link_libraries(Entryphone_apartment PUBLIC
+  ${ZMQ_LIBRARIES} ${Readline_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})

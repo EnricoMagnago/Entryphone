@@ -8,11 +8,13 @@
 
 //#define DEBUG
 #include "../../common/debug.hpp"
+#include <QApplication>
 
+#include "gui/mainwindow.h"
 #include "Algorithm.hpp"
 #include "../../common/TimeUtils.hpp"
 #include "server/EntranceServer.hpp"
-#include "HwMgr/HardwareManager.h"
+//#include "HwMgr/HardwareManager.h"
 #include "../../apartment/src/client/ApartmentClient.hpp"
 
 using namespace std;
@@ -64,11 +66,17 @@ void Algorithm::worker(const bool& terminating) {
     }
     std::cout << "Algorithm::worker() apartment_client started at: " << input_options.apartment_server << std::endl;
 
+    int argc = 0;
+    QApplication gui(argc, nullptr);
+    MainWindow gui_window(apartment_client);
+    gui_window.show();
+    gui.exec();
+    /*
     // function pointer (lambda) to ringbell function
     const HardwareManager::ringBellFun_t ringBell_fptr = [&apartment_client](){return apartment_client.ringBell();};
 
     if(!HardwareManager::initHardware(ringBell_fptr)){
-      std::cerr << "Algorithm::worker() error in the initialization of hardware manager" << std::endl;
+    std::cerr << "Algorithm::worker() error in the initialization of hardware manager" << std::endl;
     }
 
 
@@ -80,12 +88,12 @@ void Algorithm::worker(const bool& terminating) {
 
     while(!terminating){
 
-      ///< Waits for the next activation
-      timer.wait_for_next_activation();
-      // fill the streamer data structure with the status of the nodes
+    ///< Waits for the next activation
+    timer.wait_for_next_activation();
+    // fill the streamer data structure with the status of the nodes
 
-      SDEBUG("Algorithm::worker i'm still alive");
-    }
+    SDEBUG("Algorithm::worker i'm still alive");
+    }*/
   }
   catch(exception& e){
     cout << "Algorithm::worker(), exception generated, exiting." << endl;

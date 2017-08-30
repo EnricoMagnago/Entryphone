@@ -1,6 +1,6 @@
 #ifndef ENTRYPHONE_HARDWAREMANAGER_H
 #define ENTRYPHONE_HARDWAREMANAGER_H
-
+/*
 #include <functional>
 #include <atomic>
 
@@ -20,6 +20,6 @@ private:
 
         static void call_back();
 };
-
+*/
 
 #endif //ENTRYPHONE_HARDWAREMANAGER_H

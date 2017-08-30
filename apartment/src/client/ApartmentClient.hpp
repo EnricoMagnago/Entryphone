@@ -21,27 +21,27 @@
 
 class ApartmentClient : private Requester, private ApartmentServerDefinitions {
 public:
-	/**
-	 * Default constructor
-	 */
-	ApartmentClient(const std::string address);
+  /**
+   * String constructor
+   */
+  ApartmentClient(const std::string address);
 
-	/**
-	 * Destructor of the client, it basically run a stop
-	 */
-	~ApartmentClient();
+  /**
+   * Destructor of the client, it basically run a stop
+   */
+  ~ApartmentClient();
 
-	/**
-	 *
-	 * @param serverAddress
-	 * @return
-	 */
-	bool Start();
+  /**
+   *
+   * @param serverAddress
+   * @return
+   */
+  bool Start();
 
-	bool ringBell();
+  bool ringBell();
 
 private:
-	bool request(const nlohmann::json& in, nlohmann::json& out);
+  bool request(const nlohmann::json& in, nlohmann::json& out);
 };
 
 #endif /* __APARTMENT_CLIENT_HPP__ */
